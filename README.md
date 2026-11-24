@@ -9,7 +9,12 @@ En genbrugelig, lokal-first startpakke til Claude Code. Ingen API-nøgler, ekste
 Eksempel: Byg en komplet mobilapp til registrering af materialer med søgning, foto, offline lagring og JSON-backup. Brug CLAUDE.md, arbejd selvstændigt, test og ret fejl før levering.
 
 ## Kør og test
+`npm run setup` (én gang lokalt; automatisk i Claude-cloud) installerer den fastlåste RTK-binær. `npm run check` = enhedstest + browsertest, kompakt output. `npm run status` = overlevering til ny session. `npm run usage` = faktisk tokenforbrug (ccusage, offline).
+
 Node.js 20+; `npm test` (ingen installation). `npm run test:e2e` kører browsertest i Chromium ved 360 og 412 px, hvis Playwright findes lokalt (exit 2 = sprunget over). `npm start` starter en lokal statisk server på port 4173. Åbn http://localhost:4173. `public/` er webroden og kan hostes på en statisk HTTPS-host. GitHub Pages kan kræve offentligt repository på Free; publicér kun efter godkendelse. Cloudflare Pages kan tilsluttes manuelt og publicere `public` uden build-kommando, inden for gratisgrænserne.
 
 Demoen er en simpel opgaveliste med tilføjelse, redigering, afslutning, sletning, søgning, JSON-backup og offline-cache. Den kan erstattes af næste app. Data er kun i browseren, ikke krypteret eller synkroniseret; tag backup, og undgå følsomme oplysninger. ## Design-skills
 To gratis, projekt-lokale skills er installeret fra fastlåste commits: **UI/UX Pro Max** (vælger designsystem før UI-arbejde, offline) og **Impeccable** (kritik, audit og anti-mønster-detektor efter UI-arbejde; telemetri slået fra). GStack er vurderet og fravalgt pga. overlap. Detaljer, versioner og begrundelser: docs/TOOLS.md.
+
+## Ultra Efficiency Mode
+RTK komprimerer terminaloutput, instruktionerne ligger kun i `AGENTS.md`, og projektet virker også i OpenCode (`opencode.json` + `.opencode/plugins/rtk.ts`). Superpowers er primær metode. Detaljer og fravalg (context-mode, caveman): docs/TOOLS.md.

@@ -16,7 +16,8 @@ const port = 4300 + Math.floor(Math.random() * 500);
 const base = `http://localhost:${port}/`;
 const server = spawn(process.execPath, ['scripts/serve.mjs'], { env: { ...process.env, PORT: String(port) }, stdio: 'ignore' });
 const tmp = await mkdtemp(join(tmpdir(), 'appfactory-e2e-'));
-let browser, failures = 0;
+let browser, failures = 0, passed = 0;
+const verbose = process.env.E2E_VERBOSE === '1'; // passing checks are counted, failures always printed
 
 async function waitForServer() {
   for (let i = 0; i < 50; i++) { try { if ((await fetch(base)).ok) return; } catch {} await new Promise(r => setTimeout(r, 100)); }
@@ -31,7 +32,7 @@ async function run(width, height) {
   page.on('pageerror', e => errors.push(e.message));
   page.on('dialog', d => d.accept());
   const step = async (name, fn) => {
-    try { await fn(); console.log(`ok   ${width}px ${name}`); }
+    try { await fn(); passed++; if (verbose) console.log(`ok   ${width}px ${name}`); }
     catch (e) { failures++; console.log(`FAIL ${width}px ${name}: ${e.message}`); }
   };
   const titles = () => page.locator('#items li span').allTextContents();
@@ -118,7 +119,7 @@ try {
   if (browser) {
     await run(360, 800);
     await run(412, 915);
-    console.log(failures ? `${failures} e2e check(s) failed` : 'All e2e checks passed');
+    console.log(failures ? `${failures} e2e check(s) failed, ${passed} passed` : `All ${passed} e2e checks passed (360px, 412px)`);
     process.exitCode = failures ? 1 : 0;
   }
 } catch (e) { console.error(e); process.exitCode = 1; }

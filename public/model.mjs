@@ -1,0 +1,3 @@
+export function validate(items){if(!Array.isArray(items)||items.length>10000)throw Error('Ugyldig backup');const ids=new Set();return items.map(x=>{if(!x||typeof x.id!=='string'||!x.id||x.id.length>100||ids.has(x.id)||typeof x.title!=='string'||!x.title.trim()||x.title.length>200||typeof x.done!=='boolean')throw Error('Ugyldig opgave');ids.add(x.id);return {id:x.id,title:x.title.trim(),done:x.done};});}
+export function upsert(items,id,title){title=title.trim();if(!title||title.length>200)throw Error('Skriv 1–200 tegn');return validate(items.some(x=>x.id===id)?items.map(x=>x.id===id?{...x,title}:x):[...items,{id,title,done:false}]);}
+export function filter(items,q){return items.filter(x=>x.title.toLocaleLowerCase('da').includes(q.trim().toLocaleLowerCase('da')));}

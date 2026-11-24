@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {readdirSync,readFileSync,existsSync} from 'node:fs';
+const dir='.claude/skills';
+const front=f=>{const m=readFileSync(f,'utf8').match(/^---\n([\s\S]*?)\n---/);assert.ok(m,`${f}: frontmatter`);return m[1];};
+test('every project skill has name and description',()=>{for(const s of readdirSync(dir)){const fm=front(`${dir}/${s}/SKILL.md`);assert.match(fm,new RegExp(`^name: ${s}$`,'m'),s);assert.match(fm,/^description: .{20,}/m,s);}});
+test('third-party skills ship their license',()=>{for(const s of ['ui-ux-pro-max','impeccable'])assert.ok(existsSync(`${dir}/${s}/LICENSE`),s);});
+test('impeccable engine downloads are pinned by checksum',()=>{const v=readFileSync(`${dir}/impeccable/scripts/VERSION`,'utf8').trim();assert.match(readFileSync(`${dir}/impeccable/scripts/engine-checksums.txt`,'utf8'),new RegExp(`^${v.replace(/\./g,'\\.')} impeccable-linux-x64 [0-9a-f]{64}$`,'m'));});
+test('impeccable subagents referenced by the skill are present',()=>{for(const a of ['finish-reviewer','documenter','manual-edit-applier','asset-producer','motion-reviewer'])assert.ok(existsSync(`.claude/agents/impeccable-${a}.md`),a);});
+test('telemetry is disabled for the project',()=>assert.equal(JSON.parse(readFileSync('.claude/settings.json','utf8')).env.IMPECCABLE_NO_TELEMETRY,'1'));
+test('installed versions are documented',()=>{const t=readFileSync('docs/TOOLS.md','utf8');assert.match(t,/8db36338810d0942567b97ce439affd1619fcf31/);assert.match(t,/b49177d32788f2dc585c42831d845dacf1ebed2c/);});

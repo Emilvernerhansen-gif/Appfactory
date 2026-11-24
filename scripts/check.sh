@@ -6,4 +6,11 @@ echo "unit: pass"
 out=$(node scripts/e2e.mjs 2>&1); code=$?
 echo "e2e: $out" | tail -n 40
 [ $code -eq 2 ] && { echo "e2e: SKIPPED — not verified in a browser"; exit 2; }
-exit $code
+[ $code -ne 0 ] && exit $code
+for t in apps/*/e2e.mjs; do
+  [ -f "$t" ] || continue
+  out=$(node "$t" 2>&1); c=$?; echo "$(dirname "$t" | cut -d/ -f2): $out" | tail -n 40
+  [ $c -eq 2 ] && { echo "SKIPPED — not verified in a browser"; exit 2; }
+  [ $c -ne 0 ] && exit $c
+done
+exit 0

@@ -1,0 +1,429 @@
+<title>Drift · Kryb i Ly</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* LAYOUT: one thumb-reachable column; work-order tags on a charcoal workbench; bottom tab bar.
+   Dark-first (workshop/night shift), light for daylight. Status lives in a left stripe + chip. */
+:root{color-scheme:dark;
+ --bg:#121619;--surface:#1c2227;--raise:#262e35;--line:#36414b;--ink:#eef1f3;--mute:#9aa7b2;
+ --acc:#ff6b4a;--accInk:#1d0b05;--ok:#5cc28a;--wait:#f2c94c;--part:#ff9f5a;--okInk:#05210f;
+ --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;--text:Barlow,system-ui,-apple-system,"Segoe UI",sans-serif;
+ --r:14px;--nav:64px}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){color-scheme:light;
+ --bg:#eef1f2;--surface:#ffffff;--raise:#e3e8eb;--line:#c9d1d7;--ink:#141a1f;--mute:#56636e;
+ --acc:#c63a21;--accInk:#ffffff;--ok:#1f8a52;--wait:#a87a00;--part:#c2600f;--okInk:#ffffff}}
+:root[data-theme="light"]{color-scheme:light;
+ --bg:#eef1f2;--surface:#ffffff;--raise:#e3e8eb;--line:#c9d1d7;--ink:#141a1f;--mute:#56636e;
+ --acc:#c63a21;--accInk:#ffffff;--ok:#1f8a52;--wait:#a87a00;--part:#c2600f;--okInk:#ffffff}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--text);overflow-x:clip;
+ padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+ padding-block:0 calc(var(--nav) + 24px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:720px;margin:auto}
+h1,h2,h3,.disp{font-family:var(--display);font-weight:700;letter-spacing:.005em;text-wrap:balance}
+header{padding-block:18px 6px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.eyebrow{color:var(--mute);font-size:14px;font-weight:500}
+h1{font-size:clamp(34px,10vw,44px);line-height:1;margin:4px 0 0}
+h1 em{font-style:normal;color:var(--acc);font-variant-numeric:tabular-nums}
+.sync{display:flex;align-items:center;gap:6px;color:var(--mute);font-size:13px;white-space:nowrap;padding-bottom:6px}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--wait)}.sync[data-s=ok] i{background:var(--ok)}.sync[data-s=err] i{background:var(--acc)}
+h2{font-size:24px;margin:0;line-height:1.1}
+h3{font-size:18px;margin:14px 0 6px;color:var(--mute)}
+.note{color:var(--mute);font-size:14px;margin:4px 0}
+.view{display:grid;gap:12px;padding-top:6px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions:has(>[hidden]){grid-template-columns:1fr}
+button,.btn{font:600 18px/1 var(--display);letter-spacing:.01em;border:0;border-radius:12px;min-height:48px;padding:0 16px;cursor:pointer;background:var(--raise);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+button.main{background:var(--acc);color:var(--accInk)}
+button.ghost{background:transparent;border:1px solid var(--line)}
+button.small{min-height:44px;font-size:16px;padding:0 12px}
+button.danger{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+button:disabled{opacity:.5;cursor:default}
+button svg{width:20px;height:20px;flex:none}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+input,select,textarea{width:100%;font:16px var(--text);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;min-height:48px}
+textarea{min-height:88px;resize:vertical}
+::placeholder{color:var(--mute);opacity:1}
+.note,.empty{text-wrap:pretty}
+label{display:block;color:var(--mute);font-size:14px;font-weight:500;margin:12px 0 4px}
+.pills{display:flex;gap:6px;overflow-x:auto;padding:2px 24px 6px 2px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+.pill{flex:none;min-height:44px;border-radius:99px;padding:0 14px;font:600 16px/1 var(--display);background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.pill b{font-variant-numeric:tabular-nums;margin-left:6px;color:var(--mute)}
+.pill[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}.pill[aria-pressed=true] b{color:var(--bg)}
+.filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:8px}
+.list{display:grid;gap:8px}
+.card{display:block;width:100%;text-align:left;background:var(--surface);border-radius:var(--r);border:0;border-left:6px solid var(--line);padding:12px 14px 12px 14px;font:inherit;color:inherit;min-height:0;cursor:pointer}
+.card[data-s="Åben"]{border-left-color:var(--acc)}.card[data-s="I gang"]{border-left-color:var(--wait)}.card[data-s="Mangler del"]{border-left-color:var(--part)}.card[data-s="Færdig"]{border-left-color:var(--ok)}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sted{font:700 24px/1.05 var(--display)}
+.age{font-size:13px;color:var(--mute);white-space:nowrap;font-variant-numeric:tabular-nums}.age.old{color:var(--acc);font-weight:600}
+.what{font-size:17px;margin:3px 0 8px;overflow-wrap:anywhere}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:13px;line-height:1;padding:6px 10px;border-radius:99px;background:var(--raise);color:var(--mute);overflow-wrap:anywhere}
+.chip.st{color:var(--ink);font-weight:600}
+.empty{color:var(--mute);text-align:center;padding:28px 8px;background:var(--surface);border-radius:var(--r)}
+.panel{background:var(--surface);border-radius:var(--r);padding:16px}
+.panel>h2+.note{margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi{background:var(--surface);border-radius:var(--r);padding:12px}
+.kpi b{display:block;font:700 32px/1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{display:block;margin-top:6px;font-size:13px;line-height:1.3;color:var(--mute)}
+.bar{display:grid;grid-template-columns:minmax(0,7.5em) minmax(0,1fr) 2.2em;gap:10px;align-items:center;margin:7px 0;font-size:15px}
+.bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar i{display:block;height:12px;border-radius:6px;background:var(--acc);min-width:4px}
+.bar b{text-align:right;font-variant-numeric:tabular-nums}
+.chart{width:100%;height:auto;display:block}
+.chart .new{fill:var(--acc)}.chart .fix{fill:var(--ok)}.chart text{fill:var(--mute);font:12px var(--text)}.chart line{stroke:var(--line)}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--mute)}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}
+.manual{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.manual a{color:var(--acc);font:600 18px var(--display);min-height:44px;display:inline-flex;align-items:center;padding:0 8px}
+details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--mute);font-weight:600}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+nav.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:52px;border-radius:12px;color:var(--mute);text-decoration:none;font:600 15px/1 var(--display);position:relative}
+nav.tabs a svg{width:22px;height:22px}
+nav.tabs a[aria-current=page]{color:var(--ink);background:var(--raise)}
+nav.tabs .badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--acc);color:var(--accInk);font:700 13px/18px var(--text);min-width:18px;padding:0 5px;border-radius:9px;font-variant-numeric:tabular-nums}
+dialog{border:0;padding:0;background:var(--surface);color:var(--ink);width:min(720px,100%);max-width:100%;max-height:92dvh;margin:auto auto 0;border-radius:20px 20px 0 0}
+dialog::backdrop{background:rgb(0 0 0 / .55)}
+.sheet{padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow-y:auto;max-height:92dvh}
+.sheet .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.close{background:transparent;min-width:44px;padding:0}
+.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+.seg button{font-size:15px;padding:0 4px;min-height:48px;border:1px solid var(--line);background:transparent}
+.seg button[aria-pressed=true][data-v="Åben"]{background:var(--acc);color:var(--accInk);border-color:var(--acc)}
+.seg button[aria-pressed=true][data-v="I gang"]{background:var(--wait);color:#1c1500;border-color:var(--wait)}
+.seg button[aria-pressed=true][data-v="Mangler del"]{background:var(--part);color:#1f0d00;border-color:var(--part)}
+.seg button[aria-pressed=true][data-v="Færdig"]{background:var(--ok);color:var(--okInk);border-color:var(--ok)}
+.foot{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:16px}
+.meta{font-size:13px;color:var(--mute);margin-top:10px}
+.scanrow{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);color:var(--ink);font-size:16px;margin:0}
+.scanrow input{width:24px;min-height:24px;height:24px;flex:none;margin-top:2px;accent-color:var(--acc)}
+.chk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.chk .okfail{display:flex;gap:6px}.chk input{grid-column:1/-1}
+.chk button[data-r=ok][aria-pressed=true]{background:var(--ok);color:var(--okInk)}.chk button[data-r=fejl][aria-pressed=true]{background:var(--acc);color:var(--accInk)}
+.task .what{margin-bottom:0}.warn{color:var(--acc);font-weight:600}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + 16px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);border-radius:12px;padding:6px 6px 6px 16px;display:flex;align-items:center;gap:10px;font-weight:600;max-width:calc(100% - 32px);min-height:48px}
+.toast button{background:transparent;color:var(--bg);border:1px solid var(--bg);min-height:40px;font-size:16px}
+.toast:not(:has(button:not([hidden]))){padding-right:16px}
+.skel{height:86px;border-radius:var(--r);background:var(--surface);opacity:.6}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.99)}dialog[open]{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+</style>
+
+<div class="wrap">
+<header>
+ <div><div class="eyebrow">Kryb i Ly Kro · Drift</div><h1 id="head">Fejl</h1></div>
+ <div class="sync" id="sync" data-s="wait" role="status"><i></i><span id="syncT">Henter…</span></div>
+</header>
+
+<main>
+<section class="view" id="v-fejl" aria-label="Fejl">
+ <div class="actions">
+  <button class="main" id="bNew" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ny fejl</button>
+  <button id="bScan" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 12h8"/></svg>Scan seddel</button>
+ </div>
+ <div class="pills" id="pills" role="group" aria-label="Filtrér på status"></div>
+ <div class="filters">
+  <select id="fSted" aria-label="Filtrér på sted"></select>
+  <input id="fQ" type="search" placeholder="Søg i fejl" aria-label="Søg i fejl" autocomplete="off">
+ </div>
+ <div id="list" class="list" aria-live="polite"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+</section>
+
+<section class="view" id="v-drift" aria-label="Drift" hidden>
+ <div class="panel"><h2>Faste opgaver</h2><p class="note">Det, der skal klares hver uge, måned eller kvartal.</p><div id="tList" class="list" style="margin-top:10px"></div>
+  <details><summary>+ Ny fast opgave eller måler</summary><form id="fTask">
+   <label for="tNavn">Navn</label><input id="tNavn" required maxlength="80" placeholder="F.eks. Aflæs elmåler">
+   <div class="row"><div><label for="tInt">Hvor tit</label><select id="tInt"><option>Ugentlig</option><option selected>Månedlig</option><option>Kvartalsvis</option></select></div>
+   <div><label for="tType">Type</label><select id="tType"><option value="opgave">Afkryds</option><option value="maaler">Måler</option></select></div></div>
+   <label for="tEnh">Enhed (kun måler)</label><input id="tEnh" maxlength="10" placeholder="m³ eller kWh">
+   <div class="row" style="margin-top:12px"><button class="main">Opret</button></div></form></details></div>
+ <div class="panel"><h2>Værelsesrunde</h2><p class="note" id="rInfo"></p><div id="rList" class="list" style="margin-top:10px"></div>
+  <details><summary>Administrér værelser</summary>
+   <label for="rAdd">Tilføj værelser (adskil med komma eller linjeskift)</label><textarea id="rAdd" placeholder="#201, #202, #203"></textarea>
+   <div class="row" style="margin-top:8px"><button class="small main" id="rAddB" type="button">Tilføj</button><button class="small" id="rImp" type="button">Hent # fra fejllisten</button></div></details></div>
+</section>
+
+<section class="view" id="v-manualer" aria-label="Manualer" hidden>
+ <input id="mQ" type="search" placeholder="Søg i manualer" aria-label="Søg i manualer" autocomplete="off">
+ <div id="mList" class="list"></div>
+ <details class="panel"><summary>+ Tilføj manual</summary><form id="fMan">
+  <label for="mNavn">Udstyr</label><input id="mNavn" required maxlength="80" placeholder="F.eks. Opvaskemaskine">
+  <label for="mModel">Fabrikat / model</label><input id="mModel" maxlength="80">
+  <label for="mSted">Placering</label><input id="mSted" list="steder" maxlength="60">
+  <label for="mFil">PDF eller billede</label><input type="file" id="mFil" accept="application/pdf,image/*">
+  <label for="mLink">Eller link (https://)</label><input id="mLink" type="url" placeholder="https://">
+  <div class="row" style="margin-top:12px"><button class="main">Gem manual</button></div>
+  <p class="note" id="mMsg">Filer deles med alle, der har adgang til appen.</p>
+ </form></details>
+</section>
+
+<section class="view" id="v-historik" aria-label="Historik" hidden>
+ <div class="kpis" id="kpis"></div>
+ <div class="panel"><h2>Nye og udbedrede pr. uge</h2><div class="legend" style="margin:6px 0"><span><i style="background:var(--acc)"></i>Nye</span><span><i style="background:var(--ok)"></i>Udbedret</span></div><div id="hWeek"></div></div>
+ <div class="panel"><h2>Steder med flest fejl</h2><div id="hSted"></div></div>
+ <div class="panel"><h2>Fejl pr. kategori</h2><div id="hKat"></div></div>
+</section>
+</main>
+</div>
+
+<datalist id="steder"></datalist>
+
+<nav class="tabs" aria-label="Hovedmenu">
+ <a href="#fejl" data-v="fejl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.8-.7-.7-2.8z"/></svg>Fejl<span class="badge" id="badge" hidden></span></a>
+ <a href="#drift" data-v="drift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/></svg>Drift</a>
+ <a href="#manualer" data-v="manualer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h9a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM17 7h2v13M8 9h6M8 13h6"/></svg>Manualer</a>
+ <a href="#historik" data-v="historik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Historik</a>
+</nav>
+
+<dialog id="sheet" aria-labelledby="sheetT"><div class="sheet" id="sheetBody"></div></dialog>
+<div class="toast" id="toast" role="status" hidden><span id="toastT"></span><button id="toastU" type="button" hidden>Fortryd</button></div>
+
+<script>
+{
+const KAT=["El","Lys","VVS","Varme","Inventar","Bygning","Andet"];
+const STAT=["Åben","I gang","Mangler del","Færdig"];
+const VIEWS=["fejl","drift","manualer","historik"];
+const CHECK=[["Belysning og lamper","Lys"],["Stikkontakter og kontakter","El"],["TV og fjernbetjening","El"],["Røgalarm","El"],["Radiator og termostat","Varme"],["Bruser, vandhane og afløb","VVS"],["Toilet og cisterne","VVS"],["Ventilation og udluftning","Bygning"],["Døre, lås og beslag","Bygning"],["Vinduer og børnesikring","Bygning"],["Vægge, loft og fugt","Bygning"],["Seng og møbler","Inventar"]];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const today=()=>iso(new Date());
+const day=s=>String(s||"").slice(0,10);
+const dk=d=>d&&d.length>=10?d.slice(8,10)+"/"+d.slice(5,7):"";
+const daysSince=d=>{const t=Date.parse(day(d)+"T00:00:00");return isFinite(t)?Math.max(0,Math.round((Date.parse(today()+"T00:00:00")-t)/864e5)):0};
+const ageTxt=n=>n===0?"I dag":n===1?"I går":n+" dage";
+const byName=(a,b)=>String(a).localeCompare(String(b),"da",{numeric:true});
+const clean=(s,n)=>String(s??"").trim().slice(0,n);
+
+let db=null,user=null,assets=null,sample=null,me=null;
+let faults=[],tasks=[],readings=[],rooms=[],mans=[],names={};
+let filt="open",loaded=false,round=null,scanRows=[];
+
+/* ---------- toast with optional undo ---------- */
+function toast(t,undo){const e=$("toast");$("toastT").textContent=t;const u=$("toastU");u.hidden=!undo;u.onclick=undo?async()=>{e.hidden=true;await undo()}:null;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,undo?6000:2600)}
+function err(e){toast(e&&(e.code==="not_granted"||e.code==="invalid_argument"||e.code==="permission_denied")?"Du har ikke adgang til at rette her":"Kunne ikke gemme. Tjek forbindelsen og prøv igen")}
+function sync(s,t){$("sync").dataset.s=s;$("syncT").textContent=t}
+
+/* ---------- navigation ---------- */
+function current(){const v=location.hash.slice(1);return VIEWS.includes(v)?v:"fejl"}
+function view(){const v=current();
+ document.querySelectorAll("nav.tabs a").forEach(a=>{if(a.dataset.v===v)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+ VIEWS.forEach(x=>$("v-"+x).hidden=x!==v);
+ const open=faults.filter(f=>f.status!=="Færdig").length,due=tasks.filter(isDue).length;
+ $("head").innerHTML=v==="fejl"?(loaded?`<em>${open}</em> åbne fejl`:"Fejl"):v==="drift"?(due?`<em>${due}</em> skal klares`:"Drift"):v==="manualer"?"Manualer":"Historik";
+ const b=$("badge");b.hidden=!open;b.textContent=open;
+}
+addEventListener("hashchange",()=>{view();scrollTo(0,0)});
+
+/* ---------- sheet (bottom dialog) ---------- */
+const sheet=$("sheet");
+function openSheet(html){$("sheetBody").innerHTML=html;if(!sheet.open)sheet.showModal();const f=$("sheetBody").querySelector("[autofocus]");if(f)f.focus()}
+function closeSheet(){if(sheet.open)sheet.close();round=null}
+sheet.addEventListener("click",e=>{if(e.target===sheet||e.target.closest("[data-close]"))closeSheet()});
+sheet.addEventListener("close",()=>{round=null});
+const head=t=>`<div class="head"><h2 id="sheetT">${t}</h2><button type="button" class="close" data-close aria-label="Luk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;
+
+/* ---------- people ---------- */
+async function nameOf(ids){ids=[...new Set(ids)].filter(i=>i&&!(i in names));if(!ids.length||!user)return;
+ ids.forEach(i=>names[i]="…");try{const ps=await user.profiles(ids);ids.forEach(i=>names[i]=(ps[i]&&ps[i].name)||"Ukendt");renderList()}catch(e){ids.forEach(i=>names[i]="Ukendt")}}
+const who=f=>f.doneBy?(names[f.doneBy]||"…"):(f.init||"");
+
+/* ---------- faults list ---------- */
+function counts(){const c={open:0,"Åben":0,"I gang":0,"Mangler del":0,done:0};for(const f of faults){if(f.status==="Færdig")c.done++;else{c.open++;if(c[f.status]!=null)c[f.status]++}}return c}
+function matches(f){if(filt==="open")return f.status!=="Færdig";if(filt==="done")return f.status==="Færdig";return f.status===filt}
+function renderList(){
+ const c=counts();
+ $("pills").innerHTML=[["open","Alle åbne"],["Åben","Ikke startet"],["I gang","I gang"],["Mangler del","Mangler del"],["done","Udbedret"]]
+  .map(([k,l])=>`<button type="button" class="pill" data-f="${k}" aria-pressed="${filt===k}">${l}<b>${c[k]}</b></button>`).join("");
+ const steder=[...new Set(faults.map(f=>f.sted))].sort(byName),cur=$("fSted").value;
+ $("fSted").innerHTML=`<option value="">Alle steder</option>`+steder.map(s=>`<option ${s===cur?"selected":""}>${esc(s)}</option>`).join("");
+ $("steder").innerHTML=[...new Set([...steder,...rooms.map(r=>r.navn)])].map(s=>`<option value="${esc(s)}">`).join("");
+ if(!loaded){view();return}
+ const q=$("fQ").value.trim().toLowerCase(),st=$("fSted").value;
+ const rows=faults.filter(f=>matches(f)&&(!st||f.sted===st)&&(!q||(f.sted+" "+f.fejl+" "+f.bem+" "+f.kat).toLowerCase().includes(q)))
+  .sort((a,b)=>filt==="done"?day(b.doneAt||b.dato).localeCompare(day(a.doneAt||a.dato)):day(a.dato).localeCompare(day(b.dato))||byName(a.sted,b.sted));
+ $("list").innerHTML=rows.length?rows.map(f=>{const n=daysSince(f.dato),done=f.status==="Færdig";
+  return `<button type="button" class="card" data-id="${esc(f.id)}" data-s="${esc(f.status)}" aria-label="${esc(f.sted+": "+f.fejl+", "+f.status)}">
+  <span class="top"><span class="sted">${esc(f.sted)}</span><span class="age ${!done&&n>=14?"old":""}">${done?"Udbedret "+dk(day(f.doneAt)):ageTxt(n)}</span></span>
+  <span class="what" style="display:block">${esc(f.fejl)}</span>
+  <span class="chips"><span class="chip st">${esc(f.status)}</span><span class="chip">${esc(f.kat)}</span>${f.bem?`<span class="chip">${esc(f.bem)}</span>`:""}${done&&who(f)?`<span class="chip">✓ ${esc(who(f))}</span>`:""}</span></button>`}).join("")
+  :`<p class="empty">${q||st?"Ingen fejl matcher søgningen.":filt==="done"?"Ingen udbedrede fejl endnu.":faults.length?"Ingen fejl her. Godt gået.":"Ingen fejl endnu. Tryk Ny fejl eller scan en fejlseddel."}</p>`;
+ nameOf(faults.filter(f=>f.doneBy).map(f=>f.doneBy));
+ view();renderHist();
+}
+$("pills").onclick=e=>{const b=e.target.closest("[data-f]");if(b){filt=b.dataset.f;renderList()}};
+$("fSted").onchange=renderList;$("fQ").oninput=renderList;
+$("list").onclick=e=>{const c=e.target.closest(".card");if(c)openFault(c.dataset.id)};
+
+const katOpts=sel=>KAT.map(k=>`<option ${k===sel?"selected":""}>${k}</option>`).join("");
+function openFault(id){const f=faults.find(x=>x.id===id);if(!f)return;
+ openSheet(`${head(esc(f.sted))}<form id="eForm" data-id="${esc(id)}">
+  <div class="seg" role="group" aria-label="Status">${STAT.map(s=>`<button type="button" data-v="${s}" aria-pressed="${f.status===s}">${s}</button>`).join("")}</div>
+  <label for="eSted">Sted</label><input id="eSted" list="steder" required maxlength="60" value="${esc(f.sted)}">
+  <label for="eFejl">Fejl</label><input id="eFejl" required maxlength="200" value="${esc(f.fejl)}">
+  <label for="eKat">Kategori</label><select id="eKat">${katOpts(f.kat)}</select>
+  <label for="eBem">Bemærkning</label><input id="eBem" maxlength="200" value="${esc(f.bem)}">
+  <p class="meta">Oprettet ${dk(day(f.dato))} · ${ageTxt(daysSince(f.dato)).toLowerCase()}${f.status==="Færdig"?` · udbedret ${dk(day(f.doneAt))}${who(f)?" af "+esc(who(f)):""}`:""}</p>
+  <div class="foot"><button class="main">Gem ændringer</button><button type="button" class="danger" id="eDel">Slet</button></div></form>`)}
+async function setStatus(id,s){const f=faults.find(x=>x.id===id);if(!f||f.status===s)return;const prev={status:f.status,doneBy:f.doneBy??null,doneAt:f.doneAt??null};
+ const p=s==="Færdig"?{status:s,doneBy:me,doneAt:new Date().toISOString()}:{status:s,doneBy:null,doneAt:null};
+ try{await db.doc("faults/"+id).update(p);closeSheet();toast(s==="Færdig"?`${f.sted} meldt udbedret`:`${f.sted}: ${s}`,async()=>{try{await db.doc("faults/"+id).update(prev);toast("Fortrudt")}catch(x){err(x)}})}catch(x){err(x)}}
+$("sheetBody").addEventListener("click",async e=>{
+ const s=e.target.closest(".seg [data-v]");const form=e.target.closest("#eForm");
+ if(s&&form)return setStatus(form.dataset.id,s.dataset.v);
+ if(e.target.id==="eDel"){const b=e.target;if(!b.dataset.ok){b.dataset.ok=1;b.textContent="Bekræft slet";return}
+  try{await db.doc("faults/"+form.dataset.id).delete();closeSheet();toast("Fejlen er slettet")}catch(x){err(x)}}
+});
+$("sheetBody").addEventListener("submit",async e=>{e.preventDefault();const f=e.target;
+ if(f.id==="eForm"){const p={sted:clean($("eSted").value,60),fejl:clean($("eFejl").value,200),kat:$("eKat").value,bem:clean($("eBem").value,200)};
+  if(!p.sted||!p.fejl)return toast("Skriv sted og fejl");try{await db.doc("faults/"+f.dataset.id).update(p);closeSheet();toast("Gemt")}catch(x){err(x)}}
+ if(f.id==="nForm"){const d={sted:clean($("nSted").value,60),fejl:clean($("nFejl").value,200),kat:$("nKat").value,bem:clean($("nBem").value,200),status:"Åben",dato:today(),createdBy:me};
+  if(!d.sted||!d.fejl)return toast("Skriv sted og fejl");if(!db)return toast("Ikke forbundet endnu");
+  try{await db.collection("faults").add(d);closeSheet();filt="open";toast(`Fejl oprettet på ${d.sted}`)}catch(x){err(x)}}
+});
+$("bNew").onclick=()=>openSheet(`${head("Ny fejl")}<form id="nForm">
+ <label for="nSted">Sted</label><input id="nSted" list="steder" required maxlength="60" placeholder="F.eks. #223 eller Pool" autofocus>
+ <label for="nFejl">Hvad er galt?</label><input id="nFejl" required maxlength="200">
+ <label for="nKat">Kategori</label><select id="nKat">${katOpts("Andet")}</select>
+ <label for="nBem">Bemærkning</label><input id="nBem" maxlength="200">
+ <div class="foot"><button class="main">Gem fejl</button><button type="button" class="ghost" data-close>Annuller</button></div></form>`);
+
+/* ---------- scan paper sheet ---------- */
+$("bScan").onclick=()=>{openSheet(`${head("Scan fejlseddel")}<p class="note">Tag et billede af papirarket. Fejlene bliver læst, og du vælger, hvilke der skal ind. Dubletter er fravalgt.</p>
+ <label for="sFile">Billede af sedlen</label><input type="file" id="sFile" accept="image/*" capture="environment"><p id="sMsg" class="note" role="status"></p><div id="sList"></div>
+ <div class="foot"><button class="main" id="sAdd" type="button" hidden>Tilføj valgte</button><button type="button" class="ghost" data-close>Luk</button></div>`)};
+$("sheetBody").addEventListener("change",async e=>{
+ if(e.target.id==="sFile"&&e.target.files[0])return scan(e.target.files[0]);
+ if(e.target.dataset.i!=null&&scanRows[e.target.dataset.i])scanRows[e.target.dataset.i].pick=e.target.checked;
+});
+async function scan(file){
+ if(!sample){$("sMsg").textContent="Scanning er ikke tilgængelig i denne visning.";return}
+ $("sMsg").textContent="Læser sedlen… det tager lidt tid.";$("sList").innerHTML="";$("sAdd").hidden=true;
+ try{const r=await sample.json(`Billedet er et håndskrevet dansk fejlark fra et hotel (kolonner: Dato, Beskrivelse, Bemærkning, OK+Initialer). Beskrivelsen starter ofte med # og et værelsesnummer eller et lokale (Pool, Foyer, Sal 1 osv.). Returnér KUN et JSON-array med ét objekt pr. udfyldt række: {"dato":"DD/MM","sted":"#223 eller lokalenavn","fejl":"kort beskrivelse uden sted","bem":"bemærkning eller tom","ok":true hvis OK-feltet er udfyldt,"init":"initialer/navn i OK-feltet eller tom","kat":en af ${JSON.stringify(KAT)}}. Ret tydelige stavefejl. Spring tomme rækker over.`,{images:[file],modelTier:"complex"});
+  const key=x=>(String(x.sted)+String(x.fejl)).toLowerCase().replace(/\s/g,"");const have=new Set(faults.map(key));
+  scanRows=(Array.isArray(r)?r:[]).map(x=>{const dup=have.has(key(x));return{...x,dup,pick:!dup}});
+  $("sMsg").textContent=scanRows.length?`Fandt ${scanRows.length} rækker.`:"Fandt ingen fejl på billedet. Prøv et skarpere billede.";
+  $("sList").innerHTML=scanRows.map((x,i)=>`<label class="scanrow"><input type="checkbox" data-i="${i}" ${x.pick?"checked":""}><span><b>${esc(x.sted)}</b> ${esc(x.fejl)}<br><span class="note">${esc(x.dato)} · ${esc(x.kat)}${x.bem?" · "+esc(x.bem):""}${x.ok?" · ✓ "+esc(x.init):""}${x.dup?" · findes allerede":""}</span></span></label>`).join("");
+  $("sAdd").hidden=!scanRows.length;
+ }catch(e){$("sMsg").textContent=e&&e.code==="rate_limited"?"For mange forespørgsler. Vent et minut og prøv igen.":e&&e.code==="not_granted"?"Scanning er ikke tilladt for dig her.":"Kunne ikke læse billedet. Prøv et skarpere billede."}}
+$("sheetBody").addEventListener("click",async e=>{if(e.target.id!=="sAdd")return;e.target.disabled=true;const y=new Date().getFullYear();let n=0;
+ for(const x of scanRows.filter(r=>r.pick)){const m=String(x.dato||"").match(/(\d{1,2})\D+(\d{1,2})/);
+  const dato=m?`${y}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`:today();
+  try{await db.collection("faults").add({sted:clean(x.sted||"?",60),fejl:clean(x.fejl,200),bem:clean(x.bem,200),kat:KAT.includes(x.kat)?x.kat:"Andet",status:x.ok?"Færdig":"Åben",init:x.ok?clean(x.init,30):"",doneAt:x.ok?dato:null,dato,createdBy:me});n++}catch(er){err(er);break}}
+ scanRows=[];closeSheet();toast(`${n} fejl tilføjet`)});
+
+/* ---------- drift: recurring tasks + meters ---------- */
+function pStart(iv){const d=new Date();if(iv==="Ugentlig"){d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)}
+ if(iv==="Kvartalsvis")return iso(new Date(d.getFullYear(),Math.floor(d.getMonth()/3)*3,1));return iso(new Date(d.getFullYear(),d.getMonth(),1))}
+function isDue(t){return !t.sidst||t.sidst<pStart(t.interval)}
+const readsOf=id=>readings.filter(x=>x.taskId===id).sort((a,b)=>a.dato.localeCompare(b.dato));
+function series(t){const r=readsOf(t.id);return r.slice(1).map((x,i)=>({dato:x.dato,v:+(x.value-r[i].value).toFixed(2)})).slice(-12)}
+function renderDrift(){
+ const ts=[...tasks].sort((a,b)=>isDue(b)-isDue(a)||byName(a.navn,b.navn));
+ $("tList").innerHTML=ts.length?ts.map(t=>{const d=isDue(t),m=t.type==="maaler",rs=readsOf(t.id),last=rs[rs.length-1],s=series(t);
+  const avg=s.length>2?s.slice(0,-1).reduce((a,x)=>a+x.v,0)/(s.length-1):0,alarm=s.length>2&&s[s.length-1].v>avg*1.25;
+  return `<button type="button" class="card task" data-t="${esc(t.id)}" data-s="${d?"Åben":"Færdig"}"><span class="top"><span class="sted">${esc(t.navn)}</span><span class="age">${esc(t.interval)}</span></span>
+  <span class="what" style="display:block">${d?'<span class="warn">Skal klares</span>':"Klaret "+dk(t.sidst)}${m&&last?` · seneste ${esc(last.value)} ${esc(t.enhed)}`:""}${alarm?' · <span class="warn">Højt forbrug, tjek for lækage</span>':""}</span></button>`}).join(""):`<p class="empty">Ingen faste opgaver endnu.</p>`;
+ const q=Math.max(1,Math.ceil(rooms.length/13)),wk=pStart("Ugentlig"),old=iso(new Date(Date.now()-80*864e5));
+ const doneWk=rooms.filter(r=>r.lastPM&&r.lastPM>=wk).length,todo=rooms.filter(r=>!r.lastPM||r.lastPM<old).sort((a,b)=>(a.lastPM||"").localeCompare(b.lastPM||"")||byName(a.navn,b.navn));
+ $("rInfo").textContent=rooms.length?`${rooms.length} værelser · ${q} pr. uge giver alle et tjek hvert kvartal · ${doneWk} tjekket denne uge`:"Tilføj værelser nedenfor, så foreslår appen hvilke der skal tjekkes hver uge.";
+ const show=todo.slice(0,Math.max(0,q-doneWk));
+ $("rList").innerHTML=rooms.length?(show.length?show.map(r=>`<button type="button" class="card" data-room="${esc(r.id)}" data-s="Åben"><span class="top"><span class="sted">${esc(r.navn)}</span><span class="age">${r.lastPM?"Sidst "+dk(r.lastPM):"Aldrig tjekket"}</span></span><span class="what" style="display:block;margin-bottom:0">Start tjeklisten</span></button>`).join(""):`<p class="empty">Ugens værelser er klaret.</p>`)+(todo.length>show.length?`<button type="button" class="small ghost" id="rMore">Tag et ekstra værelse (${todo.length-show.length} mangler)</button>`:""):"";
+ view();
+}
+$("tList").onclick=e=>{const c=e.target.closest("[data-t]");if(!c)return;const t=tasks.find(x=>x.id===c.dataset.t);if(!t)return;const m=t.type==="maaler",s=series(t),mx=Math.max(1,...s.map(y=>y.v));
+ openSheet(`${head(esc(t.navn))}<form id="tForm" data-id="${esc(t.id)}"><p class="note">${esc(t.interval)} · ${isDue(t)?"skal klares":"klaret "+dk(t.sidst)}</p>
+ ${m?`<label for="mVal">Målerstand (${esc(t.enhed)})</label><input id="mVal" type="text" inputmode="decimal" autocomplete="off" autofocus>
+  ${sample?`<label for="mFoto">Eller læs tallet fra et foto</label><input id="mFoto" type="file" accept="image/*" capture="environment">`:""}<p class="note" id="mInfo" role="status"></p>
+  <h3>Forbrug pr. aflæsning</h3>${s.length?s.map(x=>`<div class="bar"><span>${dk(x.dato)}</span><i style="width:${Math.max(0,x.v)/mx*100}%"></i><b>${x.v}</b></div>`).join(""):'<p class="note">Vises fra anden aflæsning.</p>'}
+  <div class="foot"><button class="main">Gem aflæsning</button><button type="button" class="danger" id="tDel">Slet</button></div>`
+ :`<div class="foot"><button class="main">Markér udført</button><button type="button" class="danger" id="tDel">Slet</button></div>`}</form>`)};
+$("sheetBody").addEventListener("submit",async e=>{const f=e.target;if(f.id!=="tForm")return;e.preventDefault();const id=f.dataset.id,t=tasks.find(x=>x.id===id);if(!t)return;
+ try{if(t.type!=="maaler"){await db.doc("tasks/"+id).update({sidst:today(),by:me});closeSheet();return toast(`${t.navn}: udført`)}
+  const v=parseFloat(String($("mVal").value).replace(",","."));if(!isFinite(v))return toast("Skriv målerstanden");
+  const rs=readsOf(id),last=rs[rs.length-1];if(last&&v<last.value&&!f.dataset.low){f.dataset.low=1;return toast("Lavere end sidst. Tryk Gem igen, hvis tallet er rigtigt")}
+  await db.collection("readings").add({taskId:id,value:v,dato:today(),by:me});await db.doc("tasks/"+id).update({sidst:today(),by:me});closeSheet();toast("Aflæsning gemt")}catch(x){err(x)}});
+$("sheetBody").addEventListener("click",async e=>{if(e.target.id!=="tDel")return;const b=e.target,id=b.closest("form").dataset.id;
+ if(!b.dataset.ok){b.dataset.ok=1;b.textContent="Bekræft slet";return}try{await db.doc("tasks/"+id).delete();closeSheet();toast("Opgaven er slettet")}catch(x){err(x)}});
+$("sheetBody").addEventListener("change",async e=>{if(e.target.id!=="mFoto"||!e.target.files[0]||!sample)return;$("mInfo").textContent="Læser måleren…";
+ try{const r=await sample.json('Billedet viser en forbrugsmåler. Aflæs tælleværket (sorte og evt. røde cifre, røde cifre er decimaler). Returnér KUN JSON: {"value": tal med punktum som decimaltegn, "sikker": true/false}',{images:[e.target.files[0]],modelTier:"complex"});
+  if(r&&isFinite(+r.value)){$("mVal").value=r.value;$("mInfo").textContent=r.sikker?"Tjek tallet og tryk Gem.":"Usikker aflæsning. Tjek tallet nøje."}else $("mInfo").textContent="Kunne ikke læse måleren."}catch(x){$("mInfo").textContent="Kunne ikke læse billedet."}});
+$("fTask").onsubmit=async e=>{e.preventDefault();if(!db)return toast("Ikke forbundet endnu");const navn=clean($("tNavn").value,80);if(!navn)return;
+ try{await db.collection("tasks").add({navn,interval:$("tInt").value,type:$("tType").value,enhed:clean($("tEnh").value,10),sidst:null});e.target.reset();e.target.closest("details").open=false;toast("Opgave oprettet")}catch(x){err(x)}};
+
+/* ---------- room round ---------- */
+async function addRooms(list){let n=0;for(const navn of [...new Set(list.map(s=>clean(s,40)).filter(Boolean))]){const id="r"+navn.replace(/[^A-Za-z0-9_-]/g,"_");
+ if(rooms.some(r=>r.id===id))continue;try{await db.doc("rooms/"+id).set({navn,lastPM:null});n++}catch(x){err(x);return}}toast(n?`${n} værelser tilføjet`:"Værelserne findes allerede")}
+$("rAddB").onclick=()=>{addRooms($("rAdd").value.split(/[,\n]/));$("rAdd").value=""};
+$("rImp").onclick=()=>addRooms(faults.map(f=>f.sted).filter(s=>/^#\d+$/.test(s)));
+$("rList").onclick=e=>{if(e.target.id==="rMore"){const old=iso(new Date(Date.now()-80*864e5));const r=rooms.filter(r=>!r.lastPM||r.lastPM<old).sort((a,b)=>(a.lastPM||"").localeCompare(b.lastPM||""))[0];if(r)startRound(r);return}
+ const c=e.target.closest("[data-room]");if(c)startRound(rooms.find(r=>r.id===c.dataset.room))};
+function startRound(r){if(!r)return;openSheet("");round={room:r,res:CHECK.map(()=>({r:null,txt:""}))};renderRound()}
+function renderRound(){if(!round)return;const left=round.res.filter(x=>!x.r).length;
+ $("sheetBody").innerHTML=`${head("Tjek "+esc(round.room.navn))}<p class="note">${left?left+" punkter mangler":"Alle punkter er svaret"}</p><button type="button" class="small ghost" data-allok style="width:100%">Resten er OK</button>`+
+ CHECK.map(([n],i)=>{const x=round.res[i];return `<div class="chk"><span>${n}</span><span class="okfail"><button type="button" class="small" data-r="ok" data-i="${i}" aria-pressed="${x.r==="ok"}">OK</button><button type="button" class="small" data-r="fejl" data-i="${i}" aria-pressed="${x.r==="fejl"}">Fejl</button></span>${x.r==="fejl"?`<input data-txt="${i}" placeholder="Hvad er galt?" aria-label="Hvad er galt med ${n}?" value="${esc(x.txt)}">`:""}</div>`}).join("")+
+ `<div class="foot"><button type="button" class="main" data-rsave ${left?"disabled":""}>Gem runde</button><button type="button" class="ghost" data-close>Luk</button></div>`}
+$("sheetBody").addEventListener("click",async e=>{if(!round)return;const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.r){round.res[b.dataset.i].r=b.dataset.r;renderRound();if(b.dataset.r==="fejl")$("sheetBody").querySelector(`[data-txt="${b.dataset.i}"]`)?.focus();return}
+ if("allok" in b.dataset){round.res.forEach(x=>{if(!x.r)x.r="ok"});return renderRound()}
+ if("rsave" in b.dataset){b.disabled=true;const room=round.room,d=today();let n=0;
+  try{for(const [i,x] of round.res.entries())if(x.r==="fejl"){await db.collection("faults").add({sted:room.navn,fejl:CHECK[i][0]+(x.txt?": "+clean(x.txt,150):""),kat:CHECK[i][1],bem:"Fra værelsesrunde",status:"Åben",dato:d,createdBy:me});n++}
+   await db.collection("rounds").add({room:room.navn,dato:d,by:me,fejl:n});await db.doc("rooms/"+room.id).update({lastPM:d});closeSheet();toast(n?`Runde gemt · ${n} fejl oprettet`:"Runde gemt · alt OK")}catch(x){b.disabled=false;err(x)}}});
+$("sheetBody").addEventListener("input",e=>{const i=e.target.dataset.txt;if(i!=null&&round)round.res[i].txt=e.target.value});
+
+/* ---------- manuals ---------- */
+function renderMan(){const q=$("mQ").value.trim().toLowerCase();
+ const rows=mans.filter(m=>!q||(m.navn+" "+m.model+" "+m.sted).toLowerCase().includes(q)).sort((a,b)=>byName(a.navn,b.navn));
+ $("mList").innerHTML=rows.length?rows.map(m=>{const href=m.assetId?"/_blob/"+encodeURIComponent(m.assetId):(/^https:\/\//.test(m.link||"")?m.link:"");
+  return `<div class="panel manual"><div><div class="sted">${esc(m.navn)}</div><div class="note">${esc([m.model,m.sted].filter(Boolean).join(" · "))||"Ingen detaljer"}</div></div>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">Åbn</a>`:""}</div>`}).join("")
+  :`<p class="empty">${q?"Ingen manualer matcher søgningen.":"Ingen manualer endnu. Tilføj den første nedenfor."}</p>`}
+$("mQ").oninput=renderMan;
+$("fMan").onsubmit=async e=>{e.preventDefault();if(!db)return toast("Ikke forbundet endnu");const file=$("mFil").files[0];let assetId=null;const link=clean($("mLink").value,500);
+ if(link&&!/^https:\/\//.test(link))return $("mMsg").textContent="Linket skal starte med https://";
+ try{if(file){if(!assets)throw{code:"noassets"};$("mMsg").textContent="Uploader…";assetId=(await assets.upload(file)).id}
+  await db.collection("manuals").add({navn:clean($("mNavn").value,80),model:clean($("mModel").value,80),sted:clean($("mSted").value,60),link,assetId});
+  e.target.reset();$("mMsg").textContent="Gemt.";toast("Manual gemt")}catch(x){$("mMsg").textContent=x&&x.code==="noassets"?"Du har ikke adgang til at uploade filer. Brug et link i stedet.":"Kunne ikke gemme. Filer må højst være 20 MB."}};
+
+/* ---------- history ---------- */
+function bars(el,obj){const a=Object.entries(obj).sort((x,y)=>y[1]-x[1]).slice(0,10),mx=Math.max(1,...a.map(x=>x[1]));
+ $(el).innerHTML=a.length?a.map(([k,v])=>`<div class="bar"><span title="${esc(k)}">${esc(k)}</span><i style="width:${v/mx*100}%"></i><b>${v}</b></div>`).join(""):`<p class="note">Ingen data endnu.</p>`}
+function weekStart(s){const d=new Date(day(s)+"T00:00:00");d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)}
+function renderHist(){const cnt=(arr,k)=>arr.reduce((o,f)=>(o[f[k]]=(o[f[k]]||0)+1,o),{});
+ const done=faults.filter(f=>f.status==="Færdig"&&f.doneAt),last30=iso(new Date(Date.now()-30*864e5));
+ const fix=done.map(f=>Math.max(0,(Date.parse(day(f.doneAt))-Date.parse(day(f.dato)))/864e5)).filter(isFinite);
+ const avg=fix.length?Math.round(fix.reduce((a,b)=>a+b,0)/fix.length):null;
+ $("kpis").innerHTML=[[faults.filter(f=>f.status!=="Færdig").length,"åbne nu"],[done.filter(f=>day(f.doneAt)>=last30).length,"udbedret, 30 dage"],[avg==null?"–":avg,"dage i snit til udbedring"]]
+  .map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("");
+ const W=8,ws=[];let d=new Date(weekStart(today())+"T00:00:00");for(let i=0;i<W;i++){ws.unshift(iso(d));d.setDate(d.getDate()-7)}
+ const nNew=ws.map(w=>faults.filter(f=>weekStart(f.dato)===w).length),nFix=ws.map(w=>done.filter(f=>weekStart(f.doneAt)===w).length);
+ const mx=Math.max(1,...nNew,...nFix),H=120,bw=14,gap=40,x0=8,cw=x0+W*gap;
+ $("hWeek").innerHTML=`<svg class="chart" viewBox="0 0 ${cw} ${H+40}" role="img" aria-label="Nye og udbedrede fejl de seneste ${W} uger">
+  <line x1="0" x2="${cw}" y1="${H+.5}" y2="${H+.5}"/>${ws.map((w,i)=>{const x=x0+i*gap,a=nNew[i]/mx*(H-18),b=nFix[i]/mx*(H-18);
+  return `<rect class="new" x="${x}" y="${H-a}" width="${bw}" height="${a}" rx="3"/><rect class="fix" x="${x+bw+2}" y="${H-b}" width="${bw}" height="${b}" rx="3"/>
+  ${nNew[i]?`<text x="${x+bw/2}" y="${H-a-4}" text-anchor="middle">${nNew[i]}</text>`:""}${nFix[i]?`<text x="${x+bw*1.5+2}" y="${H-b-4}" text-anchor="middle">${nFix[i]}</text>`:""}
+  <text x="${x+bw+1}" y="${H+18}" text-anchor="middle">${dk(w)}</text>`}).join("")}<text x="${x0}" y="${H+36}">Uge der starter mandag</text></svg>`;
+ bars("hSted",cnt(faults,"sted"));bars("hKat",cnt(faults,"kat"));
+}
+
+/* ---------- data ---------- */
+function renderAll(){renderList();renderDrift();renderMan()}
+(async()=>{
+ const timer=setTimeout(()=>{if(!loaded){sync("err","Ingen forbindelse");$("list").innerHTML=`<p class="empty">Kan ikke hente fejl lige nu. Tjek internetforbindelsen. Siden prøver igen af sig selv.</p>`}},10000);
+ [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+ if(!db){clearTimeout(timer);sync("err","Ikke logget ind");$("list").innerHTML=`<p class="empty">Log ind på Claude for at se og rette fejl.</p>`;return}
+ me=user?await user.id():null;
+ db.collection("faults").onSnapshot(s=>{clearTimeout(timer);loaded=true;sync(s.metadata&&s.metadata.fromCache?"wait":"ok",s.metadata&&s.metadata.fromCache?"Offline":"Opdateret");
+  faults=s.docs.map(d=>({id:d.id,kat:"Andet",bem:"",sted:"?",fejl:"",status:"Åben",dato:today(),...d.data()}));renderList();renderDrift()},
+  ()=>{clearTimeout(timer);sync("err","Forbindelse afbrudt")});
+ db.collection("tasks").onSnapshot(s=>{tasks=s.docs.map(d=>({id:d.id,enhed:"",...d.data()}));renderDrift()},()=>{});
+ db.collection("readings").onSnapshot(s=>{readings=s.docs.map(d=>({id:d.id,...d.data()}));renderDrift()},()=>{});
+ db.collection("rooms").onSnapshot(s=>{rooms=s.docs.map(d=>({id:d.id,...d.data()}));renderDrift()},()=>{});
+ db.collection("manuals").onSnapshot(s=>{mans=s.docs.map(d=>({id:d.id,model:"",sted:"",navn:"",...d.data()}));renderMan()},()=>{});
+ [assets,sample]=await Promise.all([claude.use("assets"),claude.use("sample")]);
+ if(!sample)$("bScan").hidden=true;
+})();
+renderAll();
+}
+</script>

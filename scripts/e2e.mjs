@@ -8,8 +8,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 
+const require = createRequire(import.meta.url);
+let axePath = null; // axe-core (devDependency) for automated WCAG checks
+try { axePath = require.resolve('axe-core/axe.min.js'); } catch {}
+
 let chromium;
-try { ({ chromium } = createRequire(import.meta.url)('playwright')); }
+try { ({ chromium } = require('playwright')); }
 catch { console.log('SKIPPED: playwright not available (npm i -D playwright to enable)'); process.exit(2); }
 
 const port = 4300 + Math.floor(Math.random() * 500);
@@ -88,6 +92,13 @@ async function run(width, height) {
     await page.setInputFiles('#file', bad);
     await page.waitForFunction(() => document.getElementById('status').textContent.includes('afvist'));
     assert.equal((await titles()).length, 2);
+  });
+  await step('accessibility (axe-core WCAG 2.1 AA)', async () => {
+    assert.ok(axePath, 'axe-core missing: run npm ci');
+    await page.addScriptTag({ path: axePath });
+    const v = await page.evaluate(async () => (await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })).violations
+      .map(x => `${x.id} (${x.impact}): ${x.nodes.slice(0, 3).map(n => n.target.join(' ')).join(', ')}`));
+    assert.deepEqual(v, []);
   });
   await step('no horizontal overflow', async () => {
     await page.fill('#title', 'x'.repeat(200)); await page.click('#submit');

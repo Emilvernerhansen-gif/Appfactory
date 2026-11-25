@@ -31,6 +31,7 @@ Known limit: `npm test` has no RTK filter, and `rtk test` keeps only the last 5 
 - **opencode** (anomalyco/opencode@2444918, MIT): not installed; it is an alternative agent. Compatibility verified with `opencode-ai@1.19.6` in an isolated HOME: `opencode debug config` loads both plugins, `opencode debug skill` lists all 6 project skills + 15 Superpowers skills (+ OpenCode's built-in `customize-opencode`) with no duplicate names; the RTK plugin rewrites `git status` → `rtk git status` under Bun. It reads `AGENTS.md` first (CLAUDE.md is a 1-line import of it) and `.claude/skills/` natively. Running it needs a model provider of your own; use only free/included ones.
 
 ## Evaluated and not installed (2026-11-25)
+- **andrej-karpathy-skills** (multica-ai/andrej-karpathy-skills@2c60614, formerly forrestchang/; MIT per `plugin.json`, no LICENSE file): one 2.3 KB CLAUDE.md with 4 rules. Not installed as plugin/skill (duplicates `AGENTS.md`, costs tokens every session, "ask often" conflicts with autonomous work). Its "surgical changes" and "simplicity first" rules are adapted as one line in `AGENTS.md` rule 3.
 - **anthropics/skills `webapp-testing`** (@e4bb5d9, Apache-2.0): instructs writing Python Playwright scripts plus a `with_server.py` helper (`shell=True`). Python Playwright is not installed here, and `scripts/e2e.mjs` (Node Playwright) + `/verify-app` already cover the same job.
 - **ECC** (affaan-m/ECC 2.2.3, MIT): enabled in PR #3, removed in PR #4. Not loaded in a cloud session, 72 agents/328 skills overlapping Superpowers.
 

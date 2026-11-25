@@ -13,7 +13,7 @@ Implementation lead; work autonomously; evidence before claims. User: Android, D
    Surgical: every changed line traces to the task; no unrequested features, abstractions or options; no edits to adjacent code (mention dead code, don't delete); remove only what your change made unused; rewrite if much shorter is possible.
 4. Mobile-first 360–430px: no horizontal scroll, touch targets >=44px, labels, loading/error/empty states, keyboard/focus, contrast.
 5. Security: no secrets in frontend/git, no unsafe HTML injection, no personal data in public hosting, no destructive migration without backup/approval; client storage is not access control; validate imports; export/import where data matters.
-6. Test with `npm run check` (unit + Chromium e2e at 360/412px; exit 2 = e2e SKIPPED, never report as passed). Verify create/edit/delete, reload persistence, offline, export/import as applicable. Fix failures first; state exactly what was not verified.
+6. Test with `npm run check` (unit + Chromium e2e at 360/412px; exit 2 = e2e SKIPPED, never report as passed). Verify create/edit/delete, reload persistence, offline, export/import as applicable. Fix failures first; state exactly what was not verified. If Codex is available, run `/codex:review --base main` before merge; fix or answer each finding.
 7. Deliver on the session branch with a concise Danish report (files, test results, blockers). Never deploy publicly, merge, enable billing or delete a project without approval. Never fabricate links or results.
 
 ## Efficiency

@@ -5,6 +5,8 @@
 |---|---|---|---|---|
 | UI/UX Pro Max 2.15.0 | nextlevelbuilder/ui-ux-pro-max-skill@8db36338810d0942567b97ce439affd1619fcf31 | MIT | `.claude/skills/ui-ux-pro-max/` (core skill only; upstream `scripts/tests` omitted) | Design-system choice before UI work. Python 3 stdlib, no network. |
 | Impeccable 4.10.0 (engine 0.1.27) | pbakaus/impeccable@b49177d32788f2dc585c42831d845dacf1ebed2c | Apache-2.0 | `.claude/skills/impeccable/`, `.claude/agents/impeccable-*.md` | Critique, audit, polish and anti-pattern detector after UI work. |
+| Modern Web Guidance 1.0.2 | GoogleChrome/modern-web-guidance@2b4aa13a72dd47cd135b06ce5abfccd92e19b24f (reviewed 2026-11-25) | Apache-2.0 | `.claude/skills/modern-web-guidance/` (211 guides unmodified, own `SKILL.md`, generated `INDEX.md`, `NOTICE.md`) | Modern HTML/CSS/JS, a11y, PWA, performance and security patterns before UI work. Offline: upstream's `npx modern-web-guidance@latest` CLI and `chrome-extensions` skill not used. |
+| axe-core 4.14.0 | npm `axe-core@4.14.0` exact, `package-lock.json` (4.14.1 skipped: under 2 weeks old at review) | MPL-2.0 (unmodified, not redistributed) | devDependency, no deps, no install scripts; injected by `scripts/e2e.mjs` | WCAG 2.1 A/AA scan at 360px and 412px inside `npm run check`. Needs `npm ci`. |
 
 How they were installed: files copied from the pinned commits above (equivalent to upstream `gh skill install` / Claude plugin layout), not via `npx` or global installers, so nothing outside the repo was changed except Impeccable's engine cache. Verification done:
 - UI/UX Pro Max: upstream unit tests 235/235 OK at the pin; `search.py ... --design-system` returns a design system offline.
@@ -27,6 +29,10 @@ Known limit: `npm test` has no RTK filter, and `rtk test` keeps only the last 5 
 - **context-mode** (mksglu/context-mode@a2bced6, v2.2.3, Elastic License 2.0): MCP server + PreToolUse/PostToolUse/PreCompact hooks that sandbox tool output. Same job as RTK on the same hook (double rewriting of Bash), plus permanent MCP tool schemas in every turn and a non-OSI license. No documented net gain on top of RTK.
 - **caveman** (JuliusBrussee/caveman@47c61be, Apache-2.0): 29 skills, its own hooks and engine; "read less" duplicates RTK and skills such as `verify-and-stop`, `investigate-first`, `*-review` duplicate Superpowers. Only the zero-cost idea is kept: one "answer first, no filler" line in `AGENTS.md`.
 - **opencode** (anomalyco/opencode@2444918, MIT): not installed; it is an alternative agent. Compatibility verified with `opencode-ai@1.19.6` in an isolated HOME: `opencode debug config` loads both plugins, `opencode debug skill` lists all 6 project skills + 15 Superpowers skills (+ OpenCode's built-in `customize-opencode`) with no duplicate names; the RTK plugin rewrites `git status` → `rtk git status` under Bun. It reads `AGENTS.md` first (CLAUDE.md is a 1-line import of it) and `.claude/skills/` natively. Running it needs a model provider of your own; use only free/included ones.
+
+## Evaluated and not installed (2026-11-25)
+- **anthropics/skills `webapp-testing`** (@e4bb5d9, Apache-2.0): instructs writing Python Playwright scripts plus a `with_server.py` helper (`shell=True`). Python Playwright is not installed here, and `scripts/e2e.mjs` (Node Playwright) + `/verify-app` already cover the same job.
+- **ECC** (affaan-m/ECC 2.2.3, MIT): enabled in PR #3, removed in PR #4. Not loaded in a cloud session, 72 agents/328 skills overlapping Superpowers.
 
 ## Evaluated and not installed (earlier)
 - GStack (garrytan/gstack@afb68ac, MIT): requires Bun and a global install in `~/.claude/skills`, registers global hooks (skill routing, destructive guard, contracts), auto-update checks and outside reviews through Codex (separate login/subscription). It is a full workflow that overlaps AppFactory's build/verify/publish skills and Superpowers; its own README reports no gain in fix rate. Per this file's rule (instead of, not on top of), it is not added.

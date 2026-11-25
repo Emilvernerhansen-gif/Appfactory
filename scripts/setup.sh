@@ -7,6 +7,11 @@ RTK_VERSION=0.49.0
 BIN_DIR="${RTK_INSTALL_DIR:-$HOME/.local/bin}"
 export RTK_TELEMETRY_DISABLED=1
 
+# Project devDependencies (axe-core for e2e) from the lockfile; no install scripts run.
+if [ -f package-lock.json ] && ! node -e "require.resolve('axe-core/axe.min.js')" 2>/dev/null; then
+  npm ci --ignore-scripts --no-audit --no-fund >/dev/null 2>&1 && echo "setup: npm devDependencies installed" || echo "setup: npm ci failed; e2e accessibility check will fail" >&2
+fi
+
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)  ASSET=rtk-x86_64-unknown-linux-musl.tar.gz; SUM=7278231dfd7e6a730a4ab7f847b195bcf02289c2d57622b0dab75a6411100c8f ;;
   Linux-aarch64|Linux-arm64) ASSET=rtk-aarch64-unknown-linux-gnu.tar.gz; SUM=c8ea4b6560841e73157c134fd4a3293914c6ede42e786ee985cf491fde691ba7 ;;

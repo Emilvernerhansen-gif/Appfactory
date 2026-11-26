@@ -12,7 +12,7 @@ Kort, maskinlæsbar overlevering til en ny session. `npm run status` viser branc
 - ECC-plugin blev tilføjet (PR #3) og fjernet igen: blev ikke indlæst i cloud-session og overlapper superpowers (72 agenter/328 skills).
 
 ## Næste
-- Drift-appen (Kryb i Ly) er en claude.ai-artifact, ikke i repoet: https://claude.ai/artifact/TVg5CvZMoacufE9ipJTpsX (v11: gennemgange (valgfrit tjek af alle værelser), scan kender værelsesnumre, "hent alle værelser" til runde; v10: værelsestavle med alle 77 værelser, sortering efter værelse/dato, manual fra foto → søgelink; designskitser: https://claude.ai/artifact/UBSikRzfa7DsBGzVbkg6oP). PR #9 (starter-sortering) lukket.
+- Drift-appen (Kryb i Ly) er en claude.ai-artifact, ikke i repoet: https://claude.ai/artifact/TVg5CvZMoacufE9ipJTpsX (v12: værelseskort med historik, gennemgange på udvalgte gange; v11: gennemgange, scan kender værelsesnumre, "hent alle værelser" til runde; v10: værelsestavle med alle 77 værelser, sortering efter værelse/dato, manual fra foto → søgelink; designskitser: https://claude.ai/artifact/UBSikRzfa7DsBGzVbkg6oP). PR #9 (starter-sortering) lukket.
 - Overvej Lighthouse CI (PWA/ydelse) via `/upgrade-stack`.
 - Sortering: værelsesnr. laveste/højeste først, nyeste/ældste oprettet først (oprettelse = rækkefølge i listen). Valget huskes ikke ved genindlæsning.
 - Mulige app-forbedringer: forslag 1, 2, 4, 7, 8 (fortryd-sletning, mørk tilstand, app-badge, filterfaner, forfaldsdato).

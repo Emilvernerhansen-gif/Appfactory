@@ -13,6 +13,6 @@ Kort, maskinlæsbar overlevering til en ny session. `npm run status` viser branc
 
 ## Næste
 - Overvej Lighthouse CI (PWA/ydelse) via `/upgrade-stack`.
-- Fejl sorteres efter værelsesnummer (tallet efter "værelse"/"vær.", ellers tal først i teksten; uden nr. nederst).
+- Sortering: værelsesnr. laveste/højeste først, nyeste/ældste oprettet først (oprettelse = rækkefølge i listen). Valget huskes ikke ved genindlæsning.
 - Mulige app-forbedringer: forslag 1, 2, 4, 7, 8 (fortryd-sletning, mørk tilstand, app-badge, filterfaner, forfaldsdato).
 - Næste app: brug `/build-app` med én kort beskrivelse.

@@ -2,4 +2,4 @@ export function validate(items){if(!Array.isArray(items)||items.length>10000)thr
 export function upsert(items,id,title){title=title.trim();if(!title||title.length>200)throw Error('Skriv 1–200 tegn');return validate(items.some(x=>x.id===id)?items.map(x=>x.id===id?{...x,title}:x):[...items,{id,title,done:false}]);}
 export function filter(items,q){return items.filter(x=>x.title.toLocaleLowerCase('da').includes(q.trim().toLocaleLowerCase('da')));}
 const room=x=>{const m=x.title.match(/v(?:æ|ae)r(?:else)?s?\.?\s*(?:nr\.?|nummer)?\s*(\d+)/iu)||x.title.match(/^\s*(\d+)/);return m?Number(m[1]):Infinity;};
-export function sortByRoom(items){return [...items].sort((a,b)=>room(a)-room(b)||0);}
+export function sortItems(items,mode){const x=[...items];if(mode==='newest')return x.reverse();if(mode==='oldest')return x;const d=mode==='room-desc'?-1:1;return x.sort((a,b)=>{const ra=room(a),rb=room(b);return ra===rb?0:ra===Infinity?1:rb===Infinity?-1:d*(ra-rb);});}
